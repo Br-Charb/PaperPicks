@@ -15,4 +15,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str] = mapped_column(String(320), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    balance: Mapped[int] = mapped_column(Integer, nullable=False)
+    balance: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=10_000,
+        server_default="10000",
+    )
