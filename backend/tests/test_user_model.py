@@ -21,17 +21,19 @@ def make_user(**overrides) -> User:
     user_data = {
         "username": "ben",
         "email": "ben@example.com",
-        "password_hash": "hashed-password",
+        "hashed_password": "hashed-password",
     }
     user_data.update(overrides)
     return User(**user_data)
 
 
-def test_user_schema_has_named_unique_constraints():
+def test_user_schema_has_named_constraints():
     constraint_names = {constraint.name for constraint in User.__table__.constraints}
 
     assert "uq_users_email" in constraint_names
     assert "uq_users_username" in constraint_names
+    assert "ck_users_role" in constraint_names
+    assert "ck_users_account_status" in constraint_names
 
 
 @pytest.mark.parametrize(
@@ -59,7 +61,7 @@ def test_user_email_and_username_must_be_unique(
             session.commit()
 
 
-@pytest.mark.parametrize("required_field", ["username", "email", "password_hash"])
+@pytest.mark.parametrize("required_field", ["username", "email", "hashed_password"])
 def test_required_user_fields_cannot_be_null(database_engine, required_field):
     user = make_user(**{required_field: None})
 
@@ -69,7 +71,7 @@ def test_required_user_fields_cannot_be_null(database_engine, required_field):
             session.commit()
 
 
-def test_new_user_receives_default_balance(database_engine):
+def test_new_user_receives_account_defaults(database_engine):
     user = make_user()
 
     with Session(database_engine) as session:
@@ -78,3 +80,21 @@ def test_new_user_receives_default_balance(database_engine):
         session.refresh(user)
 
         assert user.balance == 10_000
+        assert user.role == "member"
+        assert user.account_status == "active"
+        assert user.created_at is not None
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [("role", "superuser"), ("account_status", "banned")],
+)
+def test_role_and_account_status_reject_invalid_values(
+    database_engine, field, invalid_value
+):
+    user = make_user(**{field: invalid_value})
+
+    with Session(database_engine) as session:
+        session.add(user)
+        with pytest.raises(IntegrityError):
+            session.commit()
