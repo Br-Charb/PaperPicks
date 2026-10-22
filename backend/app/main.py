@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from app.api.routes.api import router as api_router
 from app.core.config import API_PREFIX, DEBUG, PROJECT_NAME, VERSION
 from app.core.events import create_start_app_handler
+from app.core.middleware import AdminAuthMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,7 @@ def get_application() -> FastAPI:
     application = FastAPI(
         title=PROJECT_NAME, debug=DEBUG, version=VERSION, lifespan=lifespan
     )
+    application.add_middleware(AdminAuthMiddleware)
     application.add_middleware(
         CORSMiddleware,
         allow_origins=[

@@ -25,6 +25,9 @@ def get_current_user( request: Request,
     db: Session = Depends(get_db), ) -> User:
     
     """Validates the JWT token from header or cookie and gets current authenticated user."""
+    if hasattr(request.state, "user") and request.state.user is not None:
+        return request.state.user
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
