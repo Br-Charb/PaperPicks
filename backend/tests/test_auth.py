@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
-from app.api.deps import get_current_user, get_db, require_admin
+from app.api.deps import get_current_user, get_db
 from app.core.config import AUTH_COOKIE_NAME
 from app.core.security import create_access_token
 from app.db import Base
@@ -40,6 +40,126 @@ def client(test_db_session):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+def test_register_new_user(client, test_db_session):
+    payload = {
+        "username": "newuser",
+        "email": "newuser@example.com",
+        "password": "strongpassword123",
+    }
+    response = client.post("/api/auth/register", json=payload)
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["user"]["username"] == "newuser"
+    assert data["user"]["email"] == "newuser@example.com"
+    assert data["user"]["role"] == "member"
+    assert data["user"]["balance"] == 10000
+    assert data["user"]["account_status"] == "active"
+    assert "access_token" in data
+
+    set_cookie_header = response.headers.get("set-cookie", "")
+    assert AUTH_COOKIE_NAME in set_cookie_header
+
+    db_user = test_db_session.query(User).filter(User.username == "newuser").first()
+    assert db_user is not None
+
+
+def test_register_duplicate_username_fails(client, test_db_session):
+    payload1 = {
+        "username": "duplicate_user",
+        "email": "user1@example.com",
+        "password": "password123",
+    }
+    res1 = client.post("/api/auth/register", json=payload1)
+    assert res1.status_code == 201
+
+    payload2 = {
+        "username": "duplicate_user",
+        "email": "user2@example.com",
+        "password": "password123",
+    }
+    res2 = client.post("/api/auth/register", json=payload2)
+    assert res2.status_code == 400
+    assert res2.json()["detail"] == "Username already registered"
+
+
+def test_register_duplicate_email_fails(client, test_db_session):
+    payload1 = {
+        "username": "user_one",
+        "email": "duplicate@example.com",
+        "password": "password123",
+    }
+    res1 = client.post("/api/auth/register", json=payload1)
+    assert res1.status_code == 201
+
+    payload2 = {
+        "username": "user_two",
+        "email": "duplicate@example.com",
+        "password": "password123",
+    }
+    res2 = client.post("/api/auth/register", json=payload2)
+    assert res2.status_code == 400
+    assert res2.json()["detail"] == "Email already registered"
+
+
+def test_login_success_with_username_and_email(client, test_db_session):
+    client.post(
+        "/api/auth/register",
+        json={
+            "username": "loginuser",
+            "email": "loginuser@example.com",
+            "password": "password123",
+        },
+    )
+    client.cookies.clear()
+
+    res_user = client.post(
+        "/api/auth/login",
+        json={"username": "loginuser", "password": "password123"},
+    )
+    assert res_user.status_code == 200
+    assert res_user.json()["user"]["username"] == "loginuser"
+    assert AUTH_COOKIE_NAME in res_user.headers.get("set-cookie", "")
+
+    client.cookies.clear()
+    res_email = client.post(
+        "/api/auth/login",
+        json={"email": "loginuser@example.com", "password": "password123"},
+    )
+    assert res_email.status_code == 200
+    assert res_email.json()["user"]["username"] == "loginuser"
+
+
+def test_login_invalid_credentials(client):
+    res = client.post(
+        "/api/auth/login",
+        json={"username": "nonexistent", "password": "wrongpassword"},
+    )
+    assert res.status_code == 401
+    assert res.json()["detail"] == "Invalid username/email or password"
+
+
+def test_get_me_endpoint(client):
+    reg_res = client.post(
+        "/api/auth/register",
+        json={
+            "username": "ryan",
+            "email": "ryan@example.com",
+            "password": "password",
+        },
+    )
+    assert reg_res.status_code == 201
+
+    me_res = client.get("/api/auth/me")
+    assert me_res.status_code == 200
+    assert me_res.json()["username"] == "ryan"
+    assert me_res.json()["email"] == "ryan@example.com"
+
+    client.cookies.clear()
+    unauth_res = client.get("/api/auth/me")
+    assert unauth_res.status_code == 401
 
 
 def test_logout_endpoint_clears_cookie(client):
