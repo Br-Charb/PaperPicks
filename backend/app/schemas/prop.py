@@ -48,3 +48,25 @@ class PropResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Mirror frontend/src/types.ts
+class PlayerPropResponse(BaseModel):
+    id: str
+    player: str
+    category: str
+    line: str
+    matchup: str
+    time: str
+
+
+class GamePropsResponse(BaseModel):
+    id: str
+    matchup: str
+    kickoff: str
+    props: list[PlayerPropResponse]
+
+
+class DateGroupResponse(BaseModel):
+    date: str
+    games: list[GamePropsResponse]
