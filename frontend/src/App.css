@@ -142,6 +142,7 @@ button { cursor: pointer; }
 
 form label, .password-label { color: var(--neutral-text); font-size: 13px; font-weight: 600; }
 form > label, .password-label { display: flex; margin-bottom: 9px; }
+.form-field-label { display: flex; margin-top: 20px; margin-bottom: 9px; }
 .password-label { align-items: center; justify-content: space-between; margin-top: 20px; }
 .password-label a, .create-account a, .legal-copy a { color: var(--brand-accent); font-weight: 600; text-decoration: none; }
 .password-label a { font-size: 12px; }

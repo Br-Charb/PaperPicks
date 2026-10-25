@@ -22,4 +22,4 @@ Common UI elements will be used to indicate important actions that users can do 
 - `feature/<name>` - branches for new changes, one branch per feature
 
 For new features or changes, first a branch must be made off dev called `feature/<name>` or `fix/<name>`. Once that addition is complete, it will be merged back into `dev`. From there, when a new update is ready to go live, a PR will be made merging `dev` into `main`.  
-*Note - PRs into main require approval from a seperate team member, force pushes to `main` are blocked*
+*Note - PRs into main and dev require approval from a separate team member, force pushes to `main` are blocked*
