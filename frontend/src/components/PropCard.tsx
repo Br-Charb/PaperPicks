@@ -4,10 +4,11 @@ import PickToggle from './PickToggle'
 interface PropCardProps {
   prop: PlayerProp
   choice?: PickChoice
+  locked: boolean
   onPick: (propId: string, choice: PickChoice) => void
 }
 
-function PropCard({ prop, choice, onPick }: PropCardProps) {
+function PropCard({ prop, choice, locked, onPick }: PropCardProps) {
   return (
     <article className={`prop-card${choice ? ' selected' : ''}`}>
       <h3>{prop.player}</h3>
@@ -20,6 +21,7 @@ function PropCard({ prop, choice, onPick }: PropCardProps) {
       </div>
       <PickToggle
         value={choice}
+        disabled={locked}
         label={`Choose over or under for ${prop.player}`}
         onChange={(nextChoice) => onPick(prop.id, nextChoice)}
       />
