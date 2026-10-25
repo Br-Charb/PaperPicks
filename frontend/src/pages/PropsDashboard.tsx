@@ -8,7 +8,11 @@ import { allProps, propGroups } from '../data/props'
 import { Category, PickChoice, SelectedPicks } from '../types'
 import './PropsDashboard.css'
 
-function PropsDashboard() {
+interface PropsDashboardProps {
+  onNavigate?: (path: string) => void
+}
+
+function PropsDashboard({ onNavigate }: PropsDashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All')
   const [selectedPicks, setSelectedPicks] = useState<SelectedPicks>({})
 
@@ -28,7 +32,7 @@ function PropsDashboard() {
 
   return (
     <div className="dashboard-page">
-      <Navbar />
+      <Navbar onNavigate={onNavigate} />
       <main className="dashboard-layout">
         <section className="props-browser" aria-labelledby="props-title">
           <header className="page-heading">

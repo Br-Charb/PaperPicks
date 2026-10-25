@@ -24,3 +24,19 @@ export interface DateGroup {
 }
 
 export type SelectedPicks = Record<string, PickChoice>
+
+export interface User {
+  id: number
+  username: string
+  email: string
+  role: 'member' | 'admin' | string
+  balance: number
+  account_status: 'active' | 'suspended' | string
+  created_at: string
+}
+
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+  user: User
+}
