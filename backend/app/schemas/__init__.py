@@ -1,3 +1,4 @@
+from app.schemas.prop import PropCreate, PropResponse
 from app.schemas.user import (
     CreateUser,
     LoginUser,
@@ -10,6 +11,8 @@ from app.schemas.user import (
 )
 
 __all__ = [
+    "PropCreate",
+    "PropResponse",
     "UserBase",
     "UserRegister",
     "CreateUser",
