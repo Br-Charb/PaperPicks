@@ -218,3 +218,47 @@ def test_prop_routes_reject_members(client, test_db_session, path):
     assert res.status_code == 403
     assert res.json()["detail"] == "Admin access required."
     assert test_db_session.query(Prop).one().status == "draft"
+
+
+def test_admin_can_delete_draft_prop(admin_client, test_db_session):
+    prop = add_prop(test_db_session, add_game(test_db_session))
+
+    res = admin_client.delete(f"/api/admin/props/{prop.id}")
+
+    assert res.status_code == 204
+    assert res.content == b""
+    assert test_db_session.query(Prop).count() == 0
+
+
+@pytest.mark.parametrize("prop_status", ["published", "locked", "settled", "cancelled"])
+def test_delete_non_draft_prop_returns_409(admin_client, test_db_session, prop_status):
+    prop = add_prop(test_db_session, add_game(test_db_session), status=prop_status)
+
+    res = admin_client.delete(f"/api/admin/props/{prop.id}")
+
+    assert res.status_code == 409
+    assert res.json()["detail"] == "Only draft props can be deleted"
+    assert test_db_session.query(Prop).count() == 1
+
+
+def test_delete_missing_prop_returns_404(admin_client):
+    res = admin_client.delete("/api/admin/props/999")
+
+    assert res.status_code == 404
+    assert res.json()["detail"] == "Prop not found"
+
+
+def test_delete_prop_requires_login(client):
+    res = client.delete("/api/admin/props/1")
+
+    assert res.status_code == 401
+
+
+def test_delete_prop_rejects_members(client, test_db_session):
+    add_prop(test_db_session, add_game(test_db_session))
+    login_as(client, test_db_session, "member")
+
+    res = client.delete("/api/admin/props/1")
+
+    assert res.status_code == 403
+    assert test_db_session.query(Prop).count() == 1

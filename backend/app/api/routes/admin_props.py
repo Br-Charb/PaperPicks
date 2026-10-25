@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_admin
@@ -79,3 +79,24 @@ def publish_prop(prop_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(prop)
     return prop
+
+
+@router.delete("/{prop_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_prop(prop_id: int, db: Session = Depends(get_db)):
+    """Deletes a draft prop."""
+    prop = db.get(Prop, prop_id)
+    if prop is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prop not found",
+        )
+    # Drafts have no bets; task 1.4's bets FK to props should use ondelete="RESTRICT"
+    if prop.status != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only draft props can be deleted",
+        )
+
+    db.delete(prop)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
