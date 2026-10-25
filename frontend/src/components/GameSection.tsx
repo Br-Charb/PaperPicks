@@ -1,4 +1,5 @@
 import { Game } from '../types'
+import PropCard from './PropCard'
 
 interface GameSectionProps {
   game: Game
@@ -14,16 +15,7 @@ function GameSection({ game }: GameSectionProps) {
       </header>
       <div className="prop-grid">
         {game.props.map((prop) => (
-          <article className="prop-card" key={prop.id}>
-            <h3>{prop.player}</h3>
-            <p className="prop-line">
-              {prop.category === 'Game Outcome' ? 'To win by' : prop.category}: <strong>{prop.line}</strong>
-            </p>
-            <div className="prop-meta">
-              <span>{prop.matchup}</span>
-              <span>{prop.time}</span>
-            </div>
-          </article>
+          <PropCard prop={prop} key={prop.id} />
         ))}
       </div>
     </section>
