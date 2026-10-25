@@ -42,6 +42,10 @@ function PropsDashboard({ onNavigate }: PropsDashboardProps) {
   }, [])
 
   function handlePick(propId: string, choice: PickChoice) {
+    if (selectedPicks[propId] === choice) {
+      removePick(propId)
+      return
+    }
     setSelectedPicks((current) => ({ ...current, [propId]: choice }))
   }
 
