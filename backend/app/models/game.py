@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, Integer, String, UniqueConstraint
 from sqlalchemy import func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db import Base
 
@@ -49,3 +49,17 @@ class Game(Base):
     @property
     def matchup(self) -> str:
         return f"{self.away_team} @ {self.home_team}"
+
+    @validates("kickoff_at")
+    def validate_kickoff_at(self, _key: str, value: datetime | None):
+        # Store as UTC since SQLite drops the offset
+        if value is not None and value.tzinfo is not None:
+            return value.astimezone(timezone.utc)
+        return value
+
+    def has_kicked_off(self, now: datetime | None = None) -> bool:
+        kickoff = self.kickoff_at
+        # SQLite returns naive datetimes; they are stored as UTC
+        if kickoff.tzinfo is None:
+            kickoff = kickoff.replace(tzinfo=timezone.utc)
+        return kickoff <= (now or datetime.now(timezone.utc))

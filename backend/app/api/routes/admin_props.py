@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
@@ -10,16 +8,8 @@ from app.schemas.prop import PropCreate, PropResponse
 router = APIRouter(dependencies=[Depends(require_admin)])
 
 
-def _has_kicked_off(game: Game) -> bool:
-    kickoff = game.kickoff_at
-    # SQLite returns naive datetimes; they are stored as UTC
-    if kickoff.tzinfo is None:
-        kickoff = kickoff.replace(tzinfo=timezone.utc)
-    return kickoff <= datetime.now(timezone.utc)
-
-
 def _ensure_game_open(game: Game) -> None:
-    if game.status != "scheduled" or _has_kicked_off(game):
+    if game.status != "scheduled" or game.has_kicked_off():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Game has already kicked off or is no longer scheduled",

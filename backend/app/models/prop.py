@@ -75,3 +75,11 @@ class Prop(Base):
     )
 
     game: Mapped["Game"] = relationship(back_populates="props")
+
+    def is_open_for_picks(self, now: datetime | None = None) -> bool:
+        """Whether picks are allowed: published, game scheduled, before kickoff."""
+        return (
+            self.status == "published"
+            and self.game.status == "scheduled"
+            and not self.game.has_kicked_off(now)
+        )
