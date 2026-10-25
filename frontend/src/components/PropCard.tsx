@@ -1,4 +1,5 @@
 import { PlayerProp } from '../types'
+import PickToggle from './PickToggle'
 
 interface PropCardProps {
   prop: PlayerProp
@@ -15,6 +16,7 @@ function PropCard({ prop }: PropCardProps) {
         <span>{prop.matchup}</span>
         <span>{prop.time}</span>
       </div>
+      <PickToggle label={`Choose over or under for ${prop.player}`} />
     </article>
   )
 }

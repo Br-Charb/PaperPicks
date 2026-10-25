@@ -260,6 +260,34 @@
   font-size: 12px;
 }
 
+.pick-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  background: var(--brand-background);
+  border: 1px solid var(--neutral-border);
+  border-radius: 9px;
+}
+
+.pick-toggle button {
+  height: 40px;
+  color: var(--brand-primary);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pick-toggle button:hover {
+  background: var(--brand-soft);
+}
+
+.pick-toggle button.selected {
+  color: var(--neutral-white);
+  background: var(--brand-accent);
+}
+
 .prediction-slip {
   position: sticky;
   top: 100px;
