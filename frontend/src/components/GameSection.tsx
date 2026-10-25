@@ -1,11 +1,13 @@
-import { Game } from '../types'
+import { Game, PickChoice, SelectedPicks } from '../types'
 import PropCard from './PropCard'
 
 interface GameSectionProps {
   game: Game
+  selectedPicks: SelectedPicks
+  onPick: (propId: string, choice: PickChoice) => void
 }
 
-function GameSection({ game }: GameSectionProps) {
+function GameSection({ game, selectedPicks, onPick }: GameSectionProps) {
   return (
     <section className="game-section" aria-labelledby={`game-${game.id}`}>
       <header className="game-header">
@@ -15,7 +17,7 @@ function GameSection({ game }: GameSectionProps) {
       </header>
       <div className="prop-grid">
         {game.props.map((prop) => (
-          <PropCard prop={prop} key={prop.id} />
+          <PropCard prop={prop} choice={selectedPicks[prop.id]} onPick={onPick} key={prop.id} />
         ))}
       </div>
     </section>

@@ -1,12 +1,30 @@
+import { PickChoice } from '../types'
+
 interface PickToggleProps {
+  value?: PickChoice
+  onChange: (choice: PickChoice) => void
   label: string
 }
 
-function PickToggle({ label }: PickToggleProps) {
+function PickToggle({ value, onChange, label }: PickToggleProps) {
   return (
     <div className="pick-toggle" aria-label={label}>
-      <button type="button" aria-pressed="false">Over</button>
-      <button type="button" aria-pressed="false">Under</button>
+      <button
+        className={value === 'over' ? 'selected' : ''}
+        type="button"
+        aria-pressed={value === 'over'}
+        onClick={() => onChange('over')}
+      >
+        Over
+      </button>
+      <button
+        className={value === 'under' ? 'selected' : ''}
+        type="button"
+        aria-pressed={value === 'under'}
+        onClick={() => onChange('under')}
+      >
+        Under
+      </button>
     </div>
   )
 }

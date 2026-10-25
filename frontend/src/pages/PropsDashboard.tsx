@@ -3,12 +3,28 @@ import CategoryFilters from '../components/CategoryFilters'
 import DateSeparator from '../components/DateSeparator'
 import GameSection from '../components/GameSection'
 import Navbar from '../components/Navbar'
-import { propGroups } from '../data/props'
-import { Category } from '../types'
+import PredictionSlip from '../components/PredictionSlip'
+import { allProps, propGroups } from '../data/props'
+import { Category, PickChoice, SelectedPicks } from '../types'
 import './PropsDashboard.css'
 
 function PropsDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All')
+  const [selectedPicks, setSelectedPicks] = useState<SelectedPicks>({})
+
+  function handlePick(propId: string, choice: PickChoice) {
+    setSelectedPicks((current) => ({ ...current, [propId]: choice }))
+  }
+
+  function removePick(propId: string) {
+    setSelectedPicks((current) => {
+      const nextPicks = { ...current }
+      delete nextPicks[propId]
+      return nextPicks
+    })
+  }
+
+  const selectedProps = allProps.filter((prop) => selectedPicks[prop.id])
 
   return (
     <div className="dashboard-page">
@@ -40,7 +56,7 @@ function PropsDashboard() {
                 <section className="date-group" key={dateGroup.date}>
                   <DateSeparator date={dateGroup.date} />
                   {visibleGames.map((game) => (
-                    <GameSection game={game} key={game.id} />
+                    <GameSection game={game} selectedPicks={selectedPicks} onPick={handlePick} key={game.id} />
                   ))}
                 </section>
               )
@@ -48,10 +64,12 @@ function PropsDashboard() {
           </div>
         </section>
 
-        <aside className="prediction-slip">
-          <h2>Prediction Slip</h2>
-          <p>Choose a prediction to add it to your slip.</p>
-        </aside>
+        <PredictionSlip
+          props={selectedProps}
+          selectedPicks={selectedPicks}
+          onPick={handlePick}
+          onRemove={removePick}
+        />
       </main>
     </div>
   )

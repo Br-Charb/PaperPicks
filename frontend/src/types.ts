@@ -1,5 +1,7 @@
 export type Category = 'All' | 'Game Outcome' | 'Passing Yards' | 'Rushing Yards' | 'Receiving Yards' | 'TDs'
 
+export type PickChoice = 'over' | 'under'
+
 export interface PlayerProp {
   id: string
   player: string
@@ -20,3 +22,5 @@ export interface DateGroup {
   date: string
   games: Game[]
 }
+
+export type SelectedPicks = Record<string, PickChoice>
