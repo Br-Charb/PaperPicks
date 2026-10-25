@@ -202,7 +202,21 @@
   font-size: 15px;
 }
 
-.game-header time {
+.game-divider {
+  color: var(--neutral-border);
+}
+
+.game-countdown {
+  color: var(--neutral-text-muted);
+  font-size: 12px;
+}
+
+.game-countdown strong {
+  color: var(--brand-accent);
+  font-weight: 700;
+}
+
+.game-schedule {
   margin-left: auto;
   color: var(--neutral-text-muted);
   font-size: 13px;
@@ -491,6 +505,15 @@
 
   .prop-grid {
     grid-template-columns: 1fr;
+  }
+
+  .game-header {
+    flex-wrap: wrap;
+  }
+
+  .game-schedule {
+    width: 100%;
+    margin-left: 44px;
   }
 }
 

@@ -14,7 +14,7 @@ export interface PlayerProp {
 export interface Game {
   id: string
   matchup: string
-  time: string
+  kickoff: string
   props: PlayerProp[]
 }
 

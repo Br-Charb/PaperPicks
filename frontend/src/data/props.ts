@@ -7,7 +7,7 @@ export const propGroups: DateGroup[] = [
       {
         id: 'buf-kc',
         matchup: 'BUF @ KC',
-        time: '4:25 PM',
+        kickoff: '2026-10-24T16:25:00-04:00',
         props: [
           { id: 'james-cook-rush', player: 'James Cook', category: 'Rushing Yards', line: '72.5', matchup: 'BUF @ KC', time: '4:25 PM' },
           { id: 'josh-allen-pass', player: 'Josh Allen', category: 'Passing Yards', line: '275.5', matchup: 'BUF @ KC', time: '4:25 PM' },
@@ -18,7 +18,7 @@ export const propGroups: DateGroup[] = [
       {
         id: 'dal-sf',
         matchup: 'DAL @ SF',
-        time: '8:20 PM',
+        kickoff: '2026-10-24T20:20:00-04:00',
         props: [
           { id: 'ceedee-lamb-receive', player: 'CeeDee Lamb', category: 'Receiving Yards', line: '78.5', matchup: 'DAL @ SF', time: '8:20 PM' },
           { id: 'christian-mccaffrey-rush', player: 'Christian McCaffrey', category: 'Rushing Yards', line: '81.5', matchup: 'DAL @ SF', time: '8:20 PM' },
@@ -34,7 +34,7 @@ export const propGroups: DateGroup[] = [
       {
         id: 'bal-tb',
         matchup: 'BAL @ TB',
-        time: '1:00 PM',
+        kickoff: '2026-10-25T13:00:00-04:00',
         props: [
           { id: 'baker-mayfield-pass', player: 'Baker Mayfield', category: 'Passing Yards', line: '246.5', matchup: 'BAL @ TB', time: '1:00 PM' },
           { id: 'derrick-henry-rush', player: 'Derrick Henry', category: 'Rushing Yards', line: '85.5', matchup: 'BAL @ TB', time: '1:00 PM' },
@@ -45,7 +45,7 @@ export const propGroups: DateGroup[] = [
       {
         id: 'gb-pit',
         matchup: 'GB @ PIT',
-        time: '4:05 PM',
+        kickoff: '2026-10-25T16:05:00-04:00',
         props: [
           { id: 'dk-metcalf-receive', player: 'DK Metcalf', category: 'Receiving Yards', line: '67.5', matchup: 'GB @ PIT', time: '4:05 PM' },
           { id: 'green-bay-outcome', player: 'Green Bay Packers', category: 'Game Outcome', line: '3.5', matchup: 'GB @ PIT', time: '4:05 PM' },
