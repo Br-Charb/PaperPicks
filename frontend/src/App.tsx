@@ -1,13 +1,27 @@
+import { useState } from 'react'
 import './App.css'
 import paperPicksLogo from './assets/PaperPicksLogo.png'
 import LoginForm from './components/LoginForm'
+import RegistrationForm from './components/RegistrationForm'
 import PropsDashboard from './pages/PropsDashboard'
 
 function BrandLogo() {
   return <img className="brand-logo" src={paperPicksLogo} alt="" />
 }
 
-function LoginPage() {
+function AuthPage() {
+  const [isRegistration, setIsRegistration] = useState(window.location.pathname === '/register')
+
+  function showRegistration() {
+    window.history.pushState({}, '', '/register')
+    setIsRegistration(true)
+  }
+
+  function showLogin() {
+    window.history.pushState({}, '', '/')
+    setIsRegistration(false)
+  }
+
   return (
     <main className="login-page">
       <section className="login-intro" aria-label="PaperPicks introduction">
@@ -32,9 +46,13 @@ function LoginPage() {
             <span className="brand-name">PaperPicks</span>
           </div>
           <div className="login-heading">
-            <h2 id="login-heading">Login</h2>
+            <h2 id="login-heading">{isRegistration ? 'Create your account' : 'Login'}</h2>
           </div>
-          <LoginForm />
+          {isRegistration ? (
+            <RegistrationForm onBackToLogin={showLogin} />
+          ) : (
+            <LoginForm onCreateAccount={showRegistration} />
+          )}
         </div>
       </section>
     </main>
@@ -42,7 +60,7 @@ function LoginPage() {
 }
 
 function App() {
-  return window.location.pathname === '/props' ? <PropsDashboard /> : <LoginPage />
+  return window.location.pathname === '/props' ? <PropsDashboard /> : <AuthPage />
 }
 
 export default App
