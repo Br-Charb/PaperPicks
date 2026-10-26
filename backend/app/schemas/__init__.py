@@ -1,3 +1,10 @@
+from app.schemas.prop import (
+    DateGroupResponse,
+    GamePropsResponse,
+    PlayerPropResponse,
+    PropCreate,
+    PropResponse,
+)
 from app.schemas.user import (
     CreateUser,
     LoginUser,
@@ -10,6 +17,11 @@ from app.schemas.user import (
 )
 
 __all__ = [
+    "DateGroupResponse",
+    "GamePropsResponse",
+    "PlayerPropResponse",
+    "PropCreate",
+    "PropResponse",
     "UserBase",
     "UserRegister",
     "CreateUser",
