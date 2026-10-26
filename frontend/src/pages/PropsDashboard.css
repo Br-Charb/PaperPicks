@@ -338,6 +338,12 @@
   background: var(--brand-accent);
 }
 
+.pick-toggle button:disabled {
+  cursor: not-allowed;
+  background: transparent;
+  opacity: 0.45;
+}
+
 .prediction-slip {
   position: sticky;
   top: 100px;

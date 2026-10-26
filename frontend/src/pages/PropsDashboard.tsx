@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CategoryFilters from '../components/CategoryFilters'
 import DateSeparator from '../components/DateSeparator'
 import GameSection from '../components/GameSection'
@@ -6,7 +6,22 @@ import Navbar from '../components/Navbar'
 import PredictionSlip from '../components/PredictionSlip'
 import { allProps, propGroups } from '../data/props'
 import { Category, PickChoice, SelectedPicks } from '../types'
+import { hasKickedOff } from '../utils/kickoff'
 import './PropsDashboard.css'
+
+const kickoffByProp: Record<string, string> = Object.fromEntries(
+  propGroups.flatMap((dateGroup) =>
+    dateGroup.games.flatMap((game) => game.props.map((prop) => [prop.id, game.kickoff])),
+  ),
+)
+
+// Drops picks whose game has kicked off
+function removeLockedPicks(picks: SelectedPicks, currentTime: number): SelectedPicks {
+  const openPicks = Object.fromEntries(
+    Object.entries(picks).filter(([propId]) => !hasKickedOff(kickoffByProp[propId], currentTime)),
+  )
+  return Object.keys(openPicks).length === Object.keys(picks).length ? picks : openPicks
+}
 
 interface PropsDashboardProps {
   onNavigate?: (path: string) => void
@@ -15,8 +30,22 @@ interface PropsDashboardProps {
 function PropsDashboard({ onNavigate }: PropsDashboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All')
   const [selectedPicks, setSelectedPicks] = useState<SelectedPicks>({})
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const now = Date.now()
+      setCurrentTime(now)
+      setSelectedPicks((current) => removeLockedPicks(current, now))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   function handlePick(propId: string, choice: PickChoice) {
+    if (selectedPicks[propId] === choice) {
+      removePick(propId)
+      return
+    }
     setSelectedPicks((current) => ({ ...current, [propId]: choice }))
   }
 
@@ -60,7 +89,13 @@ function PropsDashboard({ onNavigate }: PropsDashboardProps) {
                 <section className="date-group" key={dateGroup.date}>
                   <DateSeparator date={dateGroup.date} />
                   {visibleGames.map((game) => (
-                    <GameSection game={game} selectedPicks={selectedPicks} onPick={handlePick} key={game.id} />
+                    <GameSection
+                      game={game}
+                      locked={hasKickedOff(game.kickoff, currentTime)}
+                      selectedPicks={selectedPicks}
+                      onPick={handlePick}
+                      key={game.id}
+                    />
                   ))}
                 </section>
               )
