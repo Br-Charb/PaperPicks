@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/app
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/app
     command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
     volumes:
       - ./app:/backend/app

@@ -14,12 +14,15 @@ VERSION = "0.1.0"
 DEBUG: bool = config("DEBUG", cast=bool, default=False)
 MAX_CONNECTIONS_COUNT: int = config("MAX_CONNECTIONS_COUNT", cast=int, default=10)
 MIN_CONNECTIONS_COUNT: int = config("MIN_CONNECTIONS_COUNT", cast=int, default=10)
-SECRET_KEY: Secret = config("SECRET_KEY", cast=Secret, default="")
+SECRET_KEY: Secret = config("SECRET_KEY", cast=Secret,
+    default="paperpicks-dev-secret-key-must-be-32-chars-long",
+)
 DATABASE_URL: str = config("DATABASE_URL", default="sqlite:///./app.db")
+AUTH_COOKIE_NAME: str = config("AUTH_COOKIE_NAME", default="access_token")
 
 PROJECT_NAME: str = config("PROJECT_NAME", default="PaperPicks")
 
-# logging configuration
+# Configuration for loggin
 LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logging.basicConfig(
     handlers=[InterceptHandler(level=LOGGING_LEVEL)], level=LOGGING_LEVEL

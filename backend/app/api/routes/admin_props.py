@@ -1,0 +1,92 @@
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_db, require_admin
+from app.models import Game, Prop
+from app.schemas.prop import PropCreate, PropResponse
+
+router = APIRouter(dependencies=[Depends(require_admin)])
+
+
+def _ensure_game_open(game: Game) -> None:
+    if game.status != "scheduled" or game.has_kicked_off():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Game has already kicked off or is no longer scheduled",
+        )
+
+
+@router.post("", response_model=PropResponse, status_code=status.HTTP_201_CREATED)
+def create_prop(prop_data: PropCreate, db: Session = Depends(get_db)):
+    """Creates a new prop as a draft."""
+    game = db.get(Game, prop_data.game_id)
+    if game is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found",
+        )
+    _ensure_game_open(game)
+
+    existing_prop = (
+        db.query(Prop)
+        .filter(
+            Prop.game_id == prop_data.game_id,
+            Prop.player_name == prop_data.player_name,
+            Prop.stat_category == prop_data.stat_category,
+        )
+        .first()
+    )
+    if existing_prop:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A prop for this player and stat already exists for this game",
+        )
+
+    new_prop = Prop(**prop_data.model_dump())
+    db.add(new_prop)
+    db.commit()
+    db.refresh(new_prop)
+    return new_prop
+
+
+@router.post("/{prop_id}/publish", response_model=PropResponse)
+def publish_prop(prop_id: int, db: Session = Depends(get_db)):
+    """Publishes a draft prop."""
+    prop = db.get(Prop, prop_id)
+    if prop is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prop not found",
+        )
+    if prop.status != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only draft props can be published",
+        )
+    _ensure_game_open(prop.game)
+
+    prop.status = "published"
+    db.commit()
+    db.refresh(prop)
+    return prop
+
+
+@router.delete("/{prop_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_prop(prop_id: int, db: Session = Depends(get_db)):
+    """Deletes a draft prop."""
+    prop = db.get(Prop, prop_id)
+    if prop is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prop not found",
+        )
+    # Drafts have no bets; task 1.4's bets FK to props should use ondelete="RESTRICT"
+    if prop.status != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only draft props can be deleted",
+        )
+
+    db.delete(prop)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
