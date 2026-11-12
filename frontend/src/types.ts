@@ -40,3 +40,16 @@ export interface TokenResponse {
   token_type: string
   user: User
 }
+
+export interface BalanceInfo {
+  balance: number
+  can_restore: boolean
+  restore_amount: number
+}
+
+export interface BalanceRestoreResult {
+  message: string
+  balance: number
+  credited_amount: number
+}
+

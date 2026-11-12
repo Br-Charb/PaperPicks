@@ -15,7 +15,7 @@ export function setStoredToken(token: string | null): void {
   }
 }
 
-function getAuthHeaders(): HeadersInit {
+export function getAuthHeaders(): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
@@ -26,7 +26,7 @@ function getAuthHeaders(): HeadersInit {
   return headers
 }
 
-function parseErrorDetail(errorData: any): string {
+export function parseErrorDetail(errorData: any): string {
   if (!errorData) {
     return 'Unknown error occurred.'
   }
