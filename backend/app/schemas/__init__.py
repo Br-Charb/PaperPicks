@@ -1,3 +1,4 @@
+from app.schemas.balance import BalanceResponse, BalanceRestoreResponse
 from app.schemas.prop import (
     DateGroupResponse,
     GamePropsResponse,
@@ -17,6 +18,8 @@ from app.schemas.user import (
 )
 
 __all__ = [
+    "BalanceResponse",
+    "BalanceRestoreResponse",
     "DateGroupResponse",
     "GamePropsResponse",
     "PlayerPropResponse",
