@@ -90,7 +90,6 @@ function Navbar({ onNavigate }: NavbarProps) {
                 type="button"
                 aria-label={`Profile: ${user.username}`}
                 title={`${user.username} (${user.role})`}
-                onClick={() => setIsBalanceModalOpen(true)}
               >
                 {getInitials(user.username)}
               </button>

@@ -124,7 +124,7 @@ export default function BalanceModal({ isOpen, onClose }: BalanceModalProps) {
           </div>
           {!canRestore && (
             <span className="balance-modal__subtext">
-              🔒 Reload is unlocked when your balance reaches 0 PTS.
+              Reload is unlocked when your balance reaches 0 PTS.
             </span>
           )}
         </section>
