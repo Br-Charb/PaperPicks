@@ -53,3 +53,50 @@ export interface BalanceRestoreResult {
   credited_amount: number
 }
 
+export interface BetLegCreatePayload {
+  prop_id: number
+  pick: PickChoice
+}
+
+export interface BetCreatePayload {
+  wager: number
+  legs: BetLegCreatePayload[]
+}
+
+export interface BetLegRecord {
+  id: number
+  prop_id: number
+  player_name: string
+  stat_category: string
+  matchup: string
+  line_snapshot: number
+  pick: PickChoice
+  status: string
+}
+
+export interface BetRecord {
+  id: number
+  user_id: number
+  wager: number
+  multiplier: number
+  potential_payout: number
+  actual_payout: number
+  status: string
+  created_at: string
+  settled_at: string | null
+  legs: BetLegRecord[]
+}
+
+export interface BetPlacementResult {
+  bet: BetRecord
+  balance: number
+}
+
+export interface ToastMessage {
+  id: number
+  type: 'success' | 'error' | 'warning'
+  title: string
+  message: string
+}
+
+
