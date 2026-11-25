@@ -148,3 +148,82 @@ def get_user_bets(
         .limit(limit)
         .all()
     )
+
+
+def settle_prop_bets(
+    db: Session,
+    prop_id: int,
+    actual_value: float,
+    now: datetime | None = None,
+) -> list[Bet]:
+    settled_time = now or datetime.now(timezone.utc)
+    prop = db.get(Prop, prop_id)
+    if prop is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Prop {prop_id} not found.",
+        )
+    if prop.status in ("settled", "cancelled"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Prop {prop_id} has already been {prop.status}.",
+        )
+
+    prop.status = "settled"
+
+    pending_legs = (
+        db.query(BetLeg)
+        .filter(BetLeg.prop_id == prop_id, BetLeg.status == "pending")
+        .all()
+    )
+    if not pending_legs:
+        db.commit()
+        return []
+
+    affected_bet_ids = sorted({leg.bet_id for leg in pending_legs})
+    for leg in pending_legs:
+        won_leg = (
+            actual_value > leg.line_snapshot
+            if leg.pick == "over"
+            else actual_value < leg.line_snapshot
+        )
+        leg.status = "won" if won_leg else "lost"
+
+    db.flush()
+
+    affected_bets = (
+        db.query(Bet)
+        .options(joinedload(Bet.legs))
+        .filter(Bet.id.in_(affected_bet_ids), Bet.status == "pending")
+        .all()
+    )
+
+    settled_bets: list[Bet] = []
+    payouts_by_user: dict[int, int] = {}
+    for bet in affected_bets:
+        leg_statuses = {leg.status for leg in bet.legs}
+        if "lost" in leg_statuses:
+            bet.status = "lost"
+            bet.actual_payout = 0
+            bet.settled_at = settled_time
+            settled_bets.append(bet)
+        elif leg_statuses == {"won"}:
+            bet.status = "won"
+            bet.actual_payout = bet.potential_payout
+            bet.settled_at = settled_time
+            payouts_by_user[bet.user_id] = (
+                payouts_by_user.get(bet.user_id, 0) + bet.actual_payout
+            )
+            settled_bets.append(bet)
+
+    for user_id, payout in payouts_by_user.items():
+        db.query(User).filter(User.id == user_id).update(
+            {User.balance: User.balance + payout},
+            synchronize_session=False,
+        )
+
+    db.commit()
+    for bet in settled_bets:
+        db.refresh(bet)
+    return settled_bets
+

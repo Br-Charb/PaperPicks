@@ -239,3 +239,90 @@ def test_list_user_bets_returns_only_own_history_newest_first(client, test_db_se
     filtered = client.get("/api/bets?status=won", headers=headers1)
     assert filtered.status_code == 200
     assert filtered.json() == []
+
+
+def test_settle_prop_bets_credits_winner_and_marks_loser(test_db_session):
+    winner, _ = _create_user(test_db_session, username="win_user", email="w@e.com", balance=500)
+    loser, _ = _create_user(test_db_session, username="lose_user", email="l@e.com", balance=500)
+    prop = _create_prop(test_db_session, player_name="Josh Allen", line=275.5)
+
+    win_bet, _ = betting_service.place_bet(
+        test_db_session,
+        winner,
+        BetCreate(wager=100, legs=[BetLegCreate(prop_id=prop.id, pick="over")]),
+    )
+    lose_bet, _ = betting_service.place_bet(
+        test_db_session,
+        loser,
+        BetCreate(wager=100, legs=[BetLegCreate(prop_id=prop.id, pick="under")]),
+    )
+
+    settled = betting_service.settle_prop_bets(test_db_session, prop.id, actual_value=310.0)
+    assert {b.id for b in settled} == {win_bet.id, lose_bet.id}
+
+    test_db_session.refresh(prop)
+    test_db_session.refresh(winner)
+    test_db_session.refresh(loser)
+    test_db_session.refresh(win_bet)
+    test_db_session.refresh(lose_bet)
+
+    assert prop.status == "settled"
+    assert win_bet.status == "won"
+    assert win_bet.actual_payout == 150
+    assert win_bet.settled_at is not None
+    assert winner.balance == 550  # 500 - 100 + 150
+
+    assert lose_bet.status == "lost"
+    assert lose_bet.actual_payout == 0
+    assert lose_bet.settled_at is not None
+    assert loser.balance == 400  # 500 - 100
+
+
+def test_settle_prop_bets_waits_for_remaining_legs_and_pays_full_parlay(test_db_session):
+    user, _ = _create_user(test_db_session, balance=1000)
+    prop1 = _create_prop(test_db_session, player_name="Josh Allen", line=275.5)
+    prop2 = _create_prop(
+        test_db_session,
+        player_name="Travis Kelce",
+        stat_category="Receiving Yards",
+        line=64.5,
+    )
+
+    parlay, _ = betting_service.place_bet(
+        test_db_session,
+        user,
+        BetCreate(
+            wager=200,
+            legs=[
+                BetLegCreate(prop_id=prop1.id, pick="over"),
+                BetLegCreate(prop_id=prop2.id, pick="under"),
+            ],
+        ),
+    )
+
+    # First leg wins; parlay should stay pending until prop2 settles
+    first_settled = betting_service.settle_prop_bets(test_db_session, prop1.id, actual_value=300.0)
+    assert first_settled == []
+    test_db_session.refresh(parlay)
+    test_db_session.refresh(user)
+    assert parlay.status == "pending"
+    assert user.balance == 800
+
+    # Second leg also wins; parlay settles as won and credits 400 (200 * 2.0)
+    second_settled = betting_service.settle_prop_bets(test_db_session, prop2.id, actual_value=50.0)
+    assert [b.id for b in second_settled] == [parlay.id]
+    test_db_session.refresh(parlay)
+    test_db_session.refresh(user)
+    assert parlay.status == "won"
+    assert parlay.actual_payout == 400
+    assert user.balance == 1200
+
+
+def test_settle_prop_bets_rejects_already_settled_prop(test_db_session):
+    prop = _create_prop(test_db_session)
+    betting_service.settle_prop_bets(test_db_session, prop.id, actual_value=300.0)
+
+    with pytest.raises(betting_service.HTTPException) as exc_info:
+        betting_service.settle_prop_bets(test_db_session, prop.id, actual_value=300.0)
+    assert exc_info.value.status_code == 400
+
