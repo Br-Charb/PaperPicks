@@ -308,7 +308,7 @@ def test_settle_prop_bets_waits_for_remaining_legs_and_pays_full_parlay(test_db_
     assert parlay.status == "pending"
     assert user.balance == 800
 
-    # Second leg also wins; parlay settles as won and credits 400 (200 * 2.0)
+    # Second leg also wins; parlay settles as won and credits 400 (200 * 2)
     second_settled = betting_service.settle_prop_bets(test_db_session, prop2.id, actual_value=50.0)
     assert [b.id for b in second_settled] == [parlay.id]
     test_db_session.refresh(parlay)
